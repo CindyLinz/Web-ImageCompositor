@@ -182,9 +182,31 @@ Vue.create-app do
             h = dim["leave-h-#leave-i"]
             if w>0 && h>0
               if @queue[leave-i]?
-                img = new Image
-                  ..src = that.src
-                ctx.draw-image img, x, y, w, h
+                q = that
+                  ..img
+                    W = ..natural-width
+                    H = ..natural-height
+
+                switch q.r
+                | 0 =>
+                  # [1 0 x][w/W 0 ] = [w/W 0  x]
+                  # [0 1 y][ 0 h/H] = [ 0 h/H y]
+                  ctx.set-transform w/W, 0, 0, h/H, x, y
+                | 1 =>
+                  # [1 0 x+w][0 -1][w/H 0 ] = [ 0 -h/W x+w]
+                  # [0 1  y ][1  0][ 0 h/W] = [w/H  0   y ]
+                  ctx.set-transform 0, w/H, -h/W, 0, x+w, y
+                | 2 =>
+                  # [1 0 x+w][-1 0][w/W 0 ] = [-w/W  0  x+w]
+                  # [0 1 y+h][0 -1][ 0 h/H] = [  0 -h/H y+h]
+                  ctx.set-transform -w/W, 0, 0, -h/H, x+w, y+h
+                | 3 =>
+                  # [1 0  x ][ 0 1][w/H 0 ] = [  0 h/W  x ]
+                  # [0 1 y+h][-1 0][ 0 h/W] = [-w/H 0  y+h]
+                  ctx.set-transform 0, -w/H, h/W, 0, x, y+h
+
+                ctx.draw-image q.img, 0, 0
+                ctx.set-transform 1, 0, 0, 1, 0, 0
               else
                 ctx.fill-style = \#999
                 ctx.fill-rect x, y, w, h
@@ -210,6 +232,12 @@ Vue.create-app do
   methods:
     remove: (i) !->
       @queue[i] = void
+    rotate: (i) !->
+      if @queue[i]
+        that.r = (that.r + 1) % 4
+        [that.w, that.h] = [that.h, that.w]
+        tr = <[50%,50% 50%,-50% -50%,-50% -50%,50%]>
+        that.transform = "translate(-50%,-50%)rotate(#{that.r*90}deg)scale(#{100/that.h})translate(#{tr[that.r]})"
 
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
@@ -236,10 +264,18 @@ Vue.create-app do
         new Image
           ..src = URL.create-objectURL file
           ..onload = !~>
-            @queue[@select-cursor] = do
-              src: ..src
-              w: ..natural-width
-              h: ..natural-height
+            w = ..natural-width
+            h = ..natural-height
+            if w > 0 && h > 0
+              @queue[@select-cursor] = do
+                img: ..
+                src: ..src
+                w: w
+                h: h
+                transform: "translate(-50%,-50%)scale(#{100/h})translate(50%,50%)"
+                r: 0
+            else
+              @queue[@select-cursor] = void
 
         it.target.value = ''
 
