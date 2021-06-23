@@ -1,8 +1,8 @@
 [image compositor](//cindylinz.github.io/Web-ImageCompositor)
 
 This is a image compositor with simple user interface.
-You set *width*, *border*, *gap*, and *background* color.
-And set *layout* by a expression.
+You set **width**, **border**, **gap**, and **background** color.
+And set **layout** by a expression.
 
   + `3` means 3 images horizontally.
   + `[3]` means 3 images vertically.
