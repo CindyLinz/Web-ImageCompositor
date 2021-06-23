@@ -19,33 +19,11 @@
         text-align: center;
       }
       .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip {
-        z-index: 1;
-        position: absolute;
-        background-color: #fff;
-        padding: 0.2rem;
-        padding-top: 0.6rem;
-        line-height: 1rem;
+        display: inline-block;
         font-size: 2rem;
       }
-      .queue .cross {
-        top: 2px;
-        right: 2px;
-      }
-      .queue .rotate {
-        top: 2px;
-        left: 2px;
-      }
-      .queue .flip {
-        top: 60px;
-        left: 2px;
-      }
-      .queue .left {
-        left: 2px;
-        top: 45px;
-      }
       .queue .right {
-        right: 2px;
-        top: 45px;
+        float: right;
       }
       canvas {
         cursor: pointer;
@@ -66,15 +44,20 @@
         <div v-for='(_,i) in queue'>
           <div v-if='i&gt;0' class=left @click.prevent=left(i)>&lt;</div>
           <div v-if='i&lt;queue.length-1' class=right @click.prevent=right(i)>&gt;</div>
+          <br style=clear:both>
+
           <template v-if=_>
-            <div class=cross @click.prevent=remove(i)>×</div>
-            <div class=rotate @click.prevent=rotate(i)>&#x21BB;</div>
-            <div class=flip @click.prevent=flip(i)>&xharr;</div>
-            <img :src=_.src @click.prevent.self=clickQueue(i) style=position:absolute :style='{transform:_.transform}'>
-            <div style=height:100px :style={width:(_.w/_.h*100)+"px"}></div>
-            <div class=dim>{{_.w}}x{{_.h}}</div>
+            <div style=background-color:#999>
+              <img :src=_.src @click.prevent.self=clickQueue(i) style=position:absolute :style='{transform:_.transform}'>
+              <div style=height:100px :style={width:(_.w/_.h*100)+"px"}></div>
+            </div>
           </template>
           <div v-else style=width:100px;height:100px;background-color:#999;text-align:center @click.prevent.self=clickQueue(i)>(empty)</div>
+          <div v-if=_ class=dim>{{_.w}}×{{_.h}}</div>
+          <div v-else class=dim>1×1</div>
+          <div class=rotate @click.prevent=rotate(i)>&#x21BB;</div>
+          <div class=flip @click.prevent=flip(i)>&xharr;</div>
+          <div class=cross @click.prevent=remove(i)>×</div>
         </div>
       </div>
       <hr>
