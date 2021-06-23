@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Image Compositor</title>
+    <style>
+      input[type=number] {
+        width: 4rem;
+      }
+      .queue {
+        height: 110px;
+        margin: 1rem;
+      }
+      .queue>div {
+        display: inline-block;
+        position: relative;
+      }
+      .queue .dim {
+        text-align: center;
+      }
+      .queue .cross, .queue .left, .queue .right {
+        position: absolute;
+        cursor: pointer;
+        background-color: #fff;
+        padding: 0.2rem;
+        padding-top: 0.6rem;
+        line-height: 1rem;
+        font-size: 2rem;
+      }
+      .queue .cross {
+        top: 2px;
+        right: 2px;
+      }
+      .queue .left {
+        left: 2px;
+        top: 45px;
+      }
+      .queue .right {
+        right: 2px;
+        top: 45px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id=body>
+      <label>Width: <input type=number v-model=width0></label>
+      <label>Gap: <input type=number v-model=gap0></label>
+      <label>Border: <input type=number v-model=border0></label>
+      → Height: {{height}}<br>
+      <label>Layout: <input type=text v-model=layout></label><br>
+      <label>Background color: <input type=text v-model=background placeholder="#rrggbb or left empty for transparent"> <a href=//cindylinz.github.io/Web-ColorPicker/ target=_blank>color picker</a></br>
+      <label>Add image: <input type=file @change=selectFile><span style=display:none>{{drawed}}</span></label>
+      <div class=queue>
+        <div v-for='(_,i) in queue'>
+          <div class=cross @click.prevent=remove(i)>×</div>
+          <div v-if='i&gt;0' class=left @click.prevent=left(i)>&lt;</div>
+          <div v-if='i&lt;queue.length-1' class=right @click.prevent=right(i)>&gt;</div>
+          <img :src=_.src height=100>
+          <div class=dim>{{_.w}}x{{_.h}}</div>
+        </div>
+      </div>
+      <canvas ref=canvas></canvas><br>
+      <a v-if=downloadUrl download=image.png :href=downloadUrl target=_blank>Download image</a>
+    </div>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script type=text/ls src=main.ls></script>
+    <script src=livescript-1.6.1-min.js></script>
+    <script>require('livescript').go()</script>
+  </body>
+</html>
