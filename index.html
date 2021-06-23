@@ -7,19 +7,19 @@
         width: 4rem;
       }
       .queue {
-        height: 110px;
-        margin: 1rem;
+        cursor: pointer;
       }
       .queue>div {
         display: inline-block;
         position: relative;
+        vertical-align: top;
+        margin-right: 1px;
       }
       .queue .dim {
         text-align: center;
       }
       .queue .cross, .queue .left, .queue .right {
         position: absolute;
-        cursor: pointer;
         background-color: #fff;
         padding: 0.2rem;
         padding-top: 0.6rem;
@@ -38,6 +38,9 @@
         right: 2px;
         top: 45px;
       }
+      canvas {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -49,17 +52,21 @@
       → Height: {{height}}<br>
       <label>Layout: <input type=text v-model=layout></label><br>
       <label>Background color: <input type=text v-model=background placeholder="#rrggbb or left empty for transparent"> <a href=//cindylinz.github.io/Web-ColorPicker/ target=_blank>color picker</a></br>
-      <label>Add image: <input type=file @change=selectFile><span style=display:none>{{drawed}}</span></label>
+      <span style=display:none><input type=file @change=selectFile>{{drawed}}</span>
       <div class=queue>
         <div v-for='(_,i) in queue'>
-          <div class=cross @click.prevent=remove(i)>×</div>
           <div v-if='i&gt;0' class=left @click.prevent=left(i)>&lt;</div>
           <div v-if='i&lt;queue.length-1' class=right @click.prevent=right(i)>&gt;</div>
-          <img :src=_.src height=100>
-          <div class=dim>{{_.w}}x{{_.h}}</div>
+          <template v-if=_>
+            <div class=cross @click.prevent=remove(i)>×</div>
+            <img :src=_.src height=100 @click.prevent.self=clickQueue(i)>
+            <div class=dim>{{_.w}}x{{_.h}}</div>
+          </template>
+          <div v-else style=width:100px;height:100px;background-color:#999;text-align:center @click.prevent.self=clickQueue(i)>(empty)</div>
         </div>
       </div>
-      <canvas ref=canvas></canvas><br>
+      <hr>
+      <canvas ref=canvas @click.prevent=clickFinal></canvas><br>
       <a v-if=downloadUrl download=image.png :href=downloadUrl target=_blank>Download image</a>
     </div>
     <script src=vue-3.1.2.js></script>

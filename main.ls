@@ -5,10 +5,12 @@ Vue.create-app do
     border0: \1
     layout: '[3, [2, 3], 1]'
     queue: []
+    hit-box: []
     ready: no
     background: ''
     download-url: ''
     height: 0
+    select-cursor: void
 
   computed:
     width: -> @width0 - 0
@@ -143,23 +145,25 @@ Vue.create-app do
       dim = @layout-dimension
 
       canvas = @$refs.canvas
-        ..width = dim["branch-w-0"] + @border * 2
+        ..width = @width
         ..height = dim["branch-h-0"] + @border * 2
 
       @height = canvas.height
-      if canvas.width <= 0 || canvas.height <= 0
+      if @width <= 0 || @height <= 0
         @download-url = ''
         return \Empty
 
       ctx = canvas.get-context \2d
       if @background == /\S/
         ctx.fill-style = @background
-        ctx.fill-rect 0, 0, canvas.width, canvas.height
+        ctx.fill-rect 0, 0, @width, canvas.height
 
       layout = try
         JSON.parse @layout
       catch
         []
+
+      @hit-box = []
 
       draw = (layout, dir, branch-i, leave-i, x, y) ~>
         if layout instanceof Array
@@ -184,6 +188,7 @@ Vue.create-app do
               else
                 ctx.fill-style = \#999
                 ctx.fill-rect x, y, w, h
+              @hit-box.push {x, y, w, h}
               if dir # v
                 y += h + @gap
               else # h
@@ -193,18 +198,37 @@ Vue.create-app do
         return {branch-i, leave-i}
       draw layout, 0, 0, 0, @border, @border
 
+      for i from @queue.length til @hit-box.length
+        @queue.push void
+      while @queue.length > @hit-box.length && !@queue[* - 1]
+        @queue.pop!
+
       canvas.to-blob (blob) !~>
         @download-url = URL.create-objectURL blob
       return 'Done ' + Math.random!
 
   methods:
     remove: (i) !->
-      @queue.splice i, 1
+      @queue[i] = void
 
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
     right: (i) !->
       @queue[i + 1, i] = @queue[i, i + 1]
+
+    click-queue: (i) !->
+        @select-cursor = i
+        document.query-selector '[type=file]' .click!
+
+    click-final: (ev) !->
+      box = @$refs.canvas.get-bounding-client-rect!
+      x = ev.x - box.x
+      y = ev.y - box.y
+      for b,i in @hit-box
+        if b.x<=x && b.y<=y && x<b.x+b.w && y<b.y+b.h
+          @select-cursor = i
+          document.query-selector '[type=file]' .click!
+          break
 
     select-file: !->
       file = it.target.files.0
@@ -212,10 +236,11 @@ Vue.create-app do
         new Image
           ..src = URL.create-objectURL file
           ..onload = !~>
-            @queue.push do
+            @queue[@select-cursor] = do
               src: ..src
               w: ..natural-width
               h: ..natural-height
+
         it.target.value = ''
 
   mounted: !->
