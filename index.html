@@ -18,7 +18,7 @@
       .queue .dim {
         text-align: center;
       }
-      .queue .cross, .queue .left, .queue .right, .queue .rotate {
+      .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip {
         z-index: 1;
         position: absolute;
         background-color: #fff;
@@ -32,7 +32,11 @@
         right: 2px;
       }
       .queue .rotate {
-        top 2px;
+        top: 2px;
+        left: 2px;
+      }
+      .queue .flip {
+        top: 60px;
         left: 2px;
       }
       .queue .left {
@@ -65,6 +69,7 @@
           <template v-if=_>
             <div class=cross @click.prevent=remove(i)>×</div>
             <div class=rotate @click.prevent=rotate(i)>&#x21BB;</div>
+            <div class=flip @click.prevent=flip(i)>&xharr;</div>
             <img :src=_.src @click.prevent.self=clickQueue(i) style=position:absolute :style='{transform:_.transform}'>
             <div style=height:100px :style={width:(_.w/_.h*100)+"px"}></div>
             <div class=dim>{{_.w}}x{{_.h}}</div>
