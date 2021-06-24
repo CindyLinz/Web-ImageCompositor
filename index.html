@@ -7,7 +7,6 @@
         width: 4rem;
       }
       .queue {
-        cursor: pointer;
       }
       .queue>div {
         display: inline-block;
@@ -18,12 +17,20 @@
       .queue .dim {
         text-align: center;
       }
+      .queue img {
+        user-select: none;
+        cursor: pointer;
+      }
       .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip {
         display: inline-block;
         font-size: 2rem;
+        user-select: none;
+        cursor: pointer;
       }
       .queue .right {
         float: right;
+        user-select: none;
+        cursor: pointer;
       }
       canvas {
         cursor: pointer;
