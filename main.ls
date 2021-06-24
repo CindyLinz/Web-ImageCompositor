@@ -3,6 +3,7 @@ Vue.create-app do
     width0: \1024
     gap0: \1
     border0: \1
+    radius0: \0
     layout: '[3, [2, 3], 1]'
     queue: []
     hit-box: []
@@ -15,7 +16,8 @@ Vue.create-app do
   computed:
     width: -> @width0 - 0
     gap: -> @gap0 - 0
-    border: -> @border0 - 0
+    radius: -> @radius0 - 0
+    border: -> if @radius > 0 then @border0 - 0 + 1 else @border0 - 0
 
     layout-dimension: ->
       layout = try
@@ -154,9 +156,36 @@ Vue.create-app do
         return \Empty
 
       ctx = canvas.get-context \2d
+
+      if @radius > 0
+        ctx.begin-path!
+        ctx.move-to 1, @radius + 1
+        ctx.arc-to 1, 1, @radius + 1, 1, @radius
+        ctx.line-to @width - @radius - 1, 1
+        ctx.arc-to @width - 1, 1, @width - 1, @radius + 1, @radius
+        ctx.line-to @width - 1, @height - @radius - 1
+        ctx.arc-to @width - 1, @height - 1, @width - @radius - 1, @height - 1, @radius
+        ctx.line-to @radius + 1, @height - 1
+        ctx.arc-to 1, @height - 1, 1, @height - @radius - 1, @radius
+        ctx.close-path!
+        ctx.clip!
+
       if @background == /\S/
         ctx.fill-style = @background
         ctx.fill-rect 0, 0, @width, canvas.height
+
+      if @radius > @border
+        ctx.begin-path!
+        ctx.move-to @border, @radius + 1
+        ctx.arc-to @border, @border, @radius + 1, @border, @radius - @border
+        ctx.line-to @width - @radius, @border
+        ctx.arc-to @width - @border, @border, @width - @border, @radius + 1, @radius - @border
+        ctx.line-to @width - @border, @height - @radius
+        ctx.arc-to @width - @border, @height - @border, @width - @radius, @height - @border, @radius - @border
+        ctx.line-to @radius + 1, @height - @border
+        ctx.arc-to @border, @height - @border, @border, @height - @radius, @radius - @border
+        ctx.close-path!
+        ctx.clip!
 
       layout = try
         JSON.parse @layout
