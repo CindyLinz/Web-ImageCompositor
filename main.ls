@@ -12,6 +12,7 @@ Vue.create-app do
     download-url: ''
     height: 0
     select-cursor: void
+    croping: void
 
   computed:
     width: -> @width0 - 0
@@ -77,7 +78,14 @@ Vue.create-app do
       {matrix} = build-matrix layout, 0, 0, 0
       for i from 0 til leave-n
         if @queue[i]?
-          matrix.push {"leave-w-#i": -that.h, "leave-h-#i": that.w}
+          q = that
+          if q.crop?
+            if q.r % 2 == 0
+              matrix.push {"leave-w-#i": -q.crop.h, "leave-h-#i": q.crop.w}
+            else
+              matrix.push {"leave-w-#i": -q.crop.w, "leave-h-#i": q.crop.h}
+          else
+            matrix.push {"leave-w-#i": -q.h, "leave-h-#i": q.w}
         else
           matrix.push {"leave-w-#i": -1, "leave-h-#i": 1}
       matrix.push {"branch-w-0": -1, constant: @width - 2 * @border}
@@ -213,48 +221,67 @@ Vue.create-app do
               if @queue[leave-i]?
                 q = that
                   ..img
-                    W = ..natural-width
-                    H = ..natural-height
+                if q.crop
+                  cx = that.x
+                  cy = that.y
+                  W = that.w
+                  H = that.h
+                else
+                  cx = 0
+                  cy = 0
+                  W = q.img.natural-width
+                  H = q.img.natural-height
+
+                ctx.save!
 
                 if q.f
                   switch q.r
                   | 0 =>
-                    # [1 0 x+w][-1 0][w/W 0 ] = [-w/W 0  x+w]
-                    # [0 1  y ][ 0 1][ 0 h/H] = [  0 h/H  y ]
-                    ctx.set-transform -w/W, 0, 0, h/H, x+w, y
+                    # [1 0 x+w][-1 0][w/W 0 ][1 0 -cx] = [-w/W 0  x+w+cx*w/W]
+                    # [0 1  y ][ 0 1][ 0 h/H][0 1 -cy] = [  0 h/H  y-cy*h/H ]
+                    ctx.set-transform -w/W, 0, 0, h/H, x+w + cx*w/W, y - cy*h/H
                   | 1 =>
-                    # [1 0 x][-1 0][0 -1][w/H 0 ] = [ 0 h/W x]
-                    # [0 1 y][ 0 1][1  0][ 0 h/W] = [w/H 0  y]
-                    ctx.set-transform 0, w/H, h/W, 0, x, y
+                    # [1 0 x][-1 0][0 -1][w/H 0 ][1 0 -cx] = [ 0 h/W x-cy*h/W]
+                    # [0 1 y][ 0 1][1  0][ 0 h/W][0 1 -cy] = [w/H 0  y-cx*w/H]
+                    ctx.set-transform 0, w/H, h/W, 0, x - cy*h/W, y - cx*w/H
                   | 2 =>
-                    # [1 0  x ][-1 0][-1 0][w/W 0 ] = [w/W  0   x]
-                    # [0 1 y+h][ 0 1][0 -1][ 0 h/H] = [ 0 -h/H y+h]
-                    ctx.set-transform w/W, 0, 0, -h/H, x, y+h
+                    # [1 0  x ][-1 0][-1 0][w/W 0 ][1 0 -cx] = [w/W  0   x-cx*w/W]
+                    # [0 1 y+h][ 0 1][0 -1][ 0 h/H][0 1 -cy] = [ 0 -h/H y+h+cy*h/H]
+                    ctx.set-transform w/W, 0, 0, -h/H, x - cx*w/W, y+h + cy*h/H
                   | 3 =>
-                    # [1 0 x+w][-1 0][ 0 1][w/H 0 ] = [  0 -h/W x+w]
-                    # [0 1 y+h][ 0 1][-1 0][ 0 h/W] = [-w/H  0  y+h]
-                    ctx.set-transform 0, -w/H, -h/W, 0, x+w, y+h
+                    # [1 0 x+w][-1 0][ 0 1][w/H 0 ][1 0 -cx] = [  0 -h/W x+w+cy*h/W]
+                    # [0 1 y+h][ 0 1][-1 0][ 0 h/W][0 1 -cy] = [-w/H  0  y+h+cx*w/H]
+                    ctx.set-transform 0, -w/H, -h/W, 0, x+w + cy*h/W, y+h + cx*w/H
                 else
                   switch q.r
                   | 0 =>
-                    # [1 0 x][w/W 0 ] = [w/W 0  x]
-                    # [0 1 y][ 0 h/H] = [ 0 h/H y]
-                    ctx.set-transform w/W, 0, 0, h/H, x, y
+                    # [1 0 x][w/W 0 ][1 0 -cx] = [w/W 0  -cx*w/W+x]
+                    # [0 1 y][ 0 h/H][0 1 -cy] = [ 0 h/H -cy*h/H+y]
+                    ctx.set-transform w/W, 0, 0, h/H, x - cx*w/W, y - cy*h/H
                   | 1 =>
-                    # [1 0 x+w][0 -1][w/H 0 ] = [ 0 -h/W x+w]
-                    # [0 1  y ][1  0][ 0 h/W] = [w/H  0   y ]
-                    ctx.set-transform 0, w/H, -h/W, 0, x+w, y
+                    # [1 0 x+w][0 -1][w/H 0 ][1 0 -cx] = [ 0 -h/W x+w+cx*h/W]
+                    # [0 1  y ][1  0][ 0 h/W][0 1 -cy] = [w/H  0   y-cy*w/H ]
+                    ctx.set-transform 0, w/H, -h/W, 0, x+w + cy*h/W, y - cx*w/H
                   | 2 =>
-                    # [1 0 x+w][-1 0][w/W 0 ] = [-w/W  0  x+w]
-                    # [0 1 y+h][0 -1][ 0 h/H] = [  0 -h/H y+h]
-                    ctx.set-transform -w/W, 0, 0, -h/H, x+w, y+h
+                    # [1 0 x+w][-1 0][w/W 0 ][1 0 -cx] = [-w/W  0  x+w+cx*w/W]
+                    # [0 1 y+h][0 -1][ 0 h/H][0 1 -cy] = [  0 -h/H y+h+cy*h/H]
+                    ctx.set-transform -w/W, 0, 0, -h/H, x+w + cx*w/W, y+h + cy*h/H
                   | 3 =>
-                    # [1 0  x ][ 0 1][w/H 0 ] = [  0 h/W  x ]
-                    # [0 1 y+h][-1 0][ 0 h/W] = [-w/H 0  y+h]
-                    ctx.set-transform 0, -w/H, h/W, 0, x, y+h
+                    # [1 0  x ][ 0 1][w/H 0 ][1 0 -cx] = [  0 h/W  x-cy*h/W ]
+                    # [0 1 y+h][-1 0][ 0 h/W][0 1 -cy] = [-w/H 0  y+h+cx*w/H]
+                    ctx.set-transform 0, -w/H, h/W, 0, x - cy*h/W, y+h + cx*w/H
 
+                if q.crop
+                  ctx.begin-path!
+                  ctx.move-to that.x, that.y
+                  ctx.line-to that.x+that.w, that.y
+                  ctx.line-to that.x+that.w, that.y+that.h
+                  ctx.line-to that.x, that.y+that.h
+                  ctx.close-path!
+                  ctx.clip!
                 ctx.draw-image q.img, 0, 0
-                ctx.set-transform 1, 0, 0, 1, 0, 0
+
+                ctx.restore!
               else
                 ctx.fill-style = \#999
                 ctx.fill-rect x, y, w, h
@@ -304,6 +331,61 @@ Vue.create-app do
         else
           tr = <[50%,50% 50%,-50% -50%,-50% -50%,50%]>
           q.transform = "translate(-50%,-50%)rotate(#{q.r*90}deg)scale(#{100/q.h})translate(#{tr[q.r]})"
+    crop: (i) !->
+      if @croping
+        @croping.handle?remove!
+
+      if @queue[i]
+        img = that
+        @croping = do
+          i: i
+          src: img.src
+          W: img.w
+          H: img.h
+          zoom: 1
+        if img.crop
+          @croping{x, y, w, h} = that{x, y, w, h}
+          @croping.active = yes
+        else
+          @croping
+            ..x = 0
+            ..y = 0
+            ..w = img.w
+            ..h = img.h
+            ..active = no
+        set-timeout !~>
+          @croping-set 0
+        , 0
+
+    croping-set: (active) !->
+      @$refs.croping-image.width = @croping.W * @croping.zoom
+      @croping.handle?remove!
+
+      if active
+        @croping.active = yes
+
+      @croping.handle = crop_image @$refs.croping-image, void, (dim) !~>
+        @croping.active = yes
+        for f in <[x y w h]>
+          @croping[f] = dim[f] / @croping.zoom
+      if @croping.active
+        @croping.handle.set_crop do
+          x: @croping.x * @croping.zoom
+          y: @croping.y * @croping.zoom
+          w: @croping.w * @croping.zoom
+          h: @croping.h * @croping.zoom
+
+    croping-cancel: !->
+      @croping.handle?remove!
+      @croping = void
+
+    croping-do: !->
+      {x, y, w, h} = @croping
+      @queue[@croping.i]
+        ..crop = {x, y, w, h}
+        ..clip = "rect(#{y}px,#{x+w}px,#{y+h}px,#{x}px)"
+      @croping.handle?remove!
+      @croping = void
 
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
@@ -341,6 +423,8 @@ Vue.create-app do
                 transform: "translate(-50%,-50%)scale(#{100/h})translate(50%,50%)"
                 r: 0
                 f: 0
+                crop: void
+                clip: void
             else
               @queue[@select-cursor] = void
 

@@ -21,7 +21,7 @@
         user-select: none;
         cursor: pointer;
       }
-      .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip {
+      .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip, .queue .crop {
         display: inline-block;
         font-size: 2rem;
         user-select: none;
@@ -35,11 +35,33 @@
       canvas {
         cursor: pointer;
       }
+      .croping {
+        position: absolute;
+        border-radius: 1rem;
+        background-color: #fff;
+        border: 3px solid #999;
+        z-index: 1;
+        padding: 1rem;
+      }
+      .croping>img {
+        z-index: 2;
+      }
     </style>
   </head>
   <body>
     <a href="https://github.com/CindyLinz/Web-ImageCompositor"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
     <div id=body>
+      <div class=croping v-if=croping>
+        x <input type=number v-model=croping.x @input=cropingSet(1)>
+        y <input type=number v-model=croping.y @input=cropingSet(1)>
+        w <input type=number v-model=croping.w @input=cropingSet(1)>
+        h <input type=number v-model=croping.h @input=cropingSet(1)>
+        zoom <input type=number v-model=croping.zoom @input=cropingSet(0)>
+        <button @click=cropingDo>Crop</button>
+        <button @click=cropingCancel>Cancel</button>
+        <hr>
+        <img :src=croping.src :width=croping.W*croping.zoom ref=cropingImage>
+      </div>
       <label>Width: <input type=number v-model=width0></label>
       <label>Gap: <input type=number v-model=gap0></label>
       <label>Border: <input type=number v-model=border0></label>
@@ -56,22 +78,35 @@
 
           <template v-if=_>
             <div style=background-color:#999>
-              <img :src=_.src @click.prevent.self=clickQueue(i) style=position:absolute :style='{transform:_.transform}'>
+              <template v-if=_.crop>
+                <img :src=_.src style=position:absolute :style='{transform:_.transform}'>
+                <div style=position:absolute;background-color:#000;opacity:0.5;height:100px :style={width:(_.w/_.h*100)+"px"}></div>
+              </template>
+              <img :src=_.src @click.prevent.self=clickQueue(i) style=position:absolute :style='{transform:_.transform,clip:_.clip}'>
               <div style=height:100px :style={width:(_.w/_.h*100)+"px"}></div>
             </div>
           </template>
           <div v-else style=width:100px;height:100px;background-color:#999;text-align:center @click.prevent.self=clickQueue(i)>(empty)</div>
-          <div v-if=_ class=dim>{{_.w}}×{{_.h}}</div>
+          <div v-if=_ class=dim>
+            {{_.w}}×{{_.h}}
+            <div v-if=_.crop>
+              Crop:
+              {{_.crop.w}}×{{_.crop.h}}+{{_.crop.x}}+{{_.crop.y}}
+            </div>
+          </div>
           <div v-else class=dim>1×1</div>
           <div class=rotate @click.prevent=rotate(i)>&#x21BB;</div>
           <div class=flip @click.prevent=flip(i)>&xharr;</div>
-          <div class=cross @click.prevent=remove(i)>×</div>
+          <br>
+          <div class=crop @click.prevent=crop(i)>&#9986;</div>
+          <div class=cross @click.prevent=remove(i)>&#x1F5D1;</div>
         </div>
       </div>
       <hr>
       <canvas ref=canvas @click.prevent=clickFinal></canvas><br>
       <a v-if=downloadUrl download=image.png :href=downloadUrl target=_blank>Download image</a>
     </div>
+    <script src=../JS-Crop-Image/crop-image.js></script>
     <script src=../Web-Common/vue-3.1.2.js></script>
     <script type=text/ls src=main.ls></script>
     <script src=../Web-Common/livescript-1.6.1-min.js></script>
