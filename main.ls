@@ -407,15 +407,14 @@ Vue.create-app do
           break
 
     select-file: !->
-      file = it.target.files.0
-      if file && file.type == /^image\//
+      for let file,i in it.target.files when file?type == /^image\//
         new Image
           ..src = URL.create-objectURL file
           ..onload = !~>
             w = ..natural-width
             h = ..natural-height
             if w > 0 && h > 0
-              @queue[@select-cursor] = do
+              @queue[@select-cursor + i] = do
                 img: ..
                 src: ..src
                 w: w
@@ -425,10 +424,8 @@ Vue.create-app do
                 f: 0
                 crop: void
                 clip: void
-            else
-              @queue[@select-cursor] = void
 
-        it.target.value = ''
+      it.target.value = ''
 
   mounted: !->
     @ready = yes
