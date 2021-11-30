@@ -387,6 +387,64 @@ Vue.create-app do
       @croping.handle?remove!
       @croping = void
 
+    croping-touch-start: !->
+      console.warn \touch-start, it
+
+      croping = croping0 = @croping-touch ? []
+      for t in it.changed-touches
+        croping = for c in croping when c.id != t.identifier
+          c
+        croping.push do
+          id: t.identifier
+          x: t.client-x
+          y: t.client-y
+      @croping-touch = croping
+
+      if croping0.length < 2 && croping.length >= 2
+        @croping-touch-zoom = @croping.zoom
+
+    croping-touch-move: !->
+      console.warn \touch-move, it
+
+      dis = (x1, y1, x2, y2) ->
+        Math.sqrt (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
+
+      croping = @croping-touch ? []
+      for t in it.changed-touches
+        for c,i in croping when c.id == t.identifier
+          if i < 2
+            c.x2 = t.client-x
+            c.y2 = t.client-y
+            if croping.length >= 2
+              dis1 = dis croping.0.x, croping.0.y, croping.1.x, croping.1.y
+              dis2 = dis croping.0.x2, croping.0.y2, croping.1.x2, croping.1.y2
+              if dis1 && dis2
+                console.warn \touch, "(#{croping.0.x},#{croping.0.y}) (#{croping.1.x},#{croping.1.y})", "(#{croping.0.x2},#{croping.0.y2}) (#{croping.1.x2},#{croping.1.y2})"
+                console.warn \zoom, dis1, dis2, dis2 / dis1
+                @croping.zoom = @croping-touch-zoom * dis2 / dis1
+          else
+            c.x = t.client-x
+            c.y = t.client-y
+
+      if croping.length >= 2
+        it.prevent-default!
+        it.stop-propagation!
+
+    croping-touch-stop: !->
+      console.warn \touch-stop, it
+
+      croping = @croping-touch ? []
+      for t in it.changed-touches
+        croping = for c in croping when c.id != t.identifier
+          c
+      if croping.length >=2 && (!croping.0.x2? || !croping.1.x2?)
+        @croping-touch-zoom = @croping.zoom
+        for c,i in croping when i<2
+          c.x2 = c.x
+          c.y2 = c.y
+
+      @croping-touch = croping
+
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
     right: (i) !->

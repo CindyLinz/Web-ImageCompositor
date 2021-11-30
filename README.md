@@ -1,4 +1,4 @@
-[image compositor](//cindylinz.github.io/Web-ImageCompositor)
+image compositor [DEMO](//cindylinz.github.io/Web-ImageCompositor)
 
 This is a image compositor with simple user interface.
 You set **width**, **border**, **gap**, and **background** color.
