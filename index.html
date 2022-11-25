@@ -61,7 +61,8 @@
         y <input type=number v-model=croping.y @input=cropingSet(1)>
         w <input type=number v-model=croping.w @input=cropingSet(1)>
         h <input type=number v-model=croping.h @input=cropingSet(1)>
-        zoom <input type=number v-model=croping.zoom @input=cropingSet(0)>
+        zoom <input type=number v-model=croping.zoom @input="(ev)=>{zoomStep=ev.target.step=parseFloat((''+ev.target.value/5).substr(0,6));cropingSet(0)}" step=0.2>
+        step {{zoomStep}}
         <button @click=cropingDo>Crop</button>
         <button @click=cropingCancel>Cancel</button>
         <hr>

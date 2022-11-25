@@ -13,6 +13,7 @@ Vue.create-app do
     height: 0
     select-cursor: void
     croping: void
+    zoom-step: 0.2
 
   computed:
     width: -> @width0 - 0
