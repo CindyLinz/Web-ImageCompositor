@@ -22,7 +22,7 @@
         user-select: none;
         cursor: pointer;
       }
-      .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip, .queue .crop {
+      .queue .cross, .queue .left, .queue .right, .queue .rotate, .queue .flip, .queue .crop, .queue .split {
         display: inline-block;
         font-size: 2rem;
         user-select: none;
@@ -36,7 +36,7 @@
       canvas {
         cursor: pointer;
       }
-      .croping {
+      .croping, .spliting {
         position: absolute;
         border-radius: 1rem;
         background-color: #fff;
@@ -67,6 +67,13 @@
         <button @click=cropingCancel>Cancel</button>
         <hr>
         <img :src=croping.src :width=croping.W*croping.zoom ref=cropingImage>
+      </div>
+      <div class=spliting v-if='spliting&gt;=0'>
+        <label><input type=radio name=spliting-dir value=h v-model=splitingDir>horizon</label>
+        <label><input type=radio name=spliting-dir value=v v-model=splitingDir>vertical</label>
+        <label><input type=number v-model=splitingNum></label>
+        <button @click=splitingSplit>Split</button>
+        <button @click=splitingCancel>Cancel</button>
       </div>
       <label>Width: <input type=number v-model=width0></label>
       <label>Gap: <input type=number v-model=gap0></label>
@@ -105,6 +112,7 @@
           <div class=flip @click.prevent=flip(i)>&xharr;</div>
           <br>
           <div class=crop @click.prevent=crop(i)>&#9986;</div>
+          <div class=split @click.prevent=split(i)>&#128298;</div>
           <div class=cross @click.prevent=remove(i)>&#x1F5D1;</div>
         </div>
       </div>

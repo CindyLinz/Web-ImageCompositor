@@ -15,6 +15,10 @@ Vue.create-app do
     croping: void
     zoom-step: 0.2
 
+    spliting: -1
+    spliting-num: 2
+    spliting-dir: \h
+
   computed:
     width: -> @width0 - 0
     gap: -> @gap0 - 0
@@ -445,6 +449,45 @@ Vue.create-app do
           c.y2 = c.y
 
       @croping-touch = croping
+
+    split: (i) !->
+      @spliting = i
+    spliting-cancel: !->
+      @spliting = -1
+    spliting-split: !->
+      @spliting-num = @spliting-num .|. 0
+      if @spliting-num > 1
+        for i from @spliting + 1 to @spliting + @spliting-num - 1
+          @queue.splice i, 0, ^^@queue[@spliting]
+        if @spliting-dir == \h
+          if @queue[@spliting].crop
+            x = that.x
+            w = that.w / @spliting-num
+            y = that.y
+            h = that.h
+          else
+            x = 0
+            w = @queue[@spliting].w / @spliting-num
+            y = 0
+            h = @queue[@spliting].h
+          for i from @spliting to @spliting + @spliting-num - 1
+            @queue[i].crop = {x, y, w, h}
+            x += w
+        else
+          if @queue[@spliting].crop
+            x = that.x
+            w = that.w
+            y = that.y
+            h = that.h / @spliting-num
+          else
+            x = 0
+            w = @queue[@spliting].w
+            y = 0
+            h = @queue[@spliting].h / @spliting-num
+          for i from @spliting to @spliting + @spliting-num - 1
+            @queue[i].crop = {x, y, w, h}
+            y += h
+      @spliting = -1;
 
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
