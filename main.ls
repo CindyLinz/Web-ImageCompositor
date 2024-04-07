@@ -347,7 +347,7 @@ Vue.create-app do
           src: img.src
           W: img.w
           H: img.h
-          zoom: 1
+          zoom: 1 <? document.document-element.client-width / img.w * 0.9 <? document.document-element.client-height / img.h * 0.9
         if img.crop
           @croping{x, y, w, h} = that{x, y, w, h}
           @croping.active = yes
