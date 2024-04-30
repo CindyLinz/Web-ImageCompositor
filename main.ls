@@ -12,12 +12,12 @@ Vue.create-app do
     download-url: ''
     height: 0
     select-cursor: void
-    croping: void
+    cropping: void
     zoom-step: 0.2
 
-    spliting: -1
-    spliting-num: 2
-    spliting-dir: \h
+    splitting: -1
+    splitting-num: 2
+    splitting-dir: \h
 
   computed:
     width: -> @width0 - 0
@@ -337,157 +337,159 @@ Vue.create-app do
           tr = <[50%,50% 50%,-50% -50%,-50% -50%,50%]>
           q.transform = "translate(-50%,-50%)rotate(#{q.r*90}deg)scale(#{100/q.h})translate(#{tr[q.r]})"
     crop: (i) !->
-      if @croping
-        @croping.handle?remove!
+      if @cropping
+        @cropping.handle?remove!
 
       if @queue[i]
         img = that
-        @croping = do
+        @cropping = do
           i: i
           src: img.src
           W: img.w
           H: img.h
           zoom: 1 <? document.document-element.client-width / img.w * 0.9 <? document.document-element.client-height / img.h * 0.9
         if img.crop
-          @croping{x, y, w, h} = that{x, y, w, h}
-          @croping.active = yes
+          @cropping{x, y, w, h} = that{x, y, w, h}
+          @cropping.active = yes
         else
-          @croping
+          @cropping
             ..x = 0
             ..y = 0
             ..w = img.w
             ..h = img.h
             ..active = no
         set-timeout !~>
-          @croping-set 0
+          @cropping-set 0
         , 0
 
-    croping-set: (active) !->
-      @$refs.croping-image.width = @croping.W * @croping.zoom
-      @croping.handle?remove!
+    cropping-set: (active) !->
+      @$refs.cropping-image.width = @cropping.W * @cropping.zoom
+      @cropping.handle?remove!
 
       if active
-        @croping.active = yes
+        @cropping.active = yes
 
-      @croping.handle = crop_image @$refs.croping-image, void, (dim) !~>
-        @croping.active = yes
+      @cropping.handle = crop_image @$refs.cropping-image, void, (dim) !~>
+        @cropping.active = yes
         for f in <[x y w h]>
-          @croping[f] = dim[f] / @croping.zoom
-      if @croping.active
-        @croping.handle.set_crop do
-          x: @croping.x * @croping.zoom
-          y: @croping.y * @croping.zoom
-          w: @croping.w * @croping.zoom
-          h: @croping.h * @croping.zoom
+          @cropping[f] = dim[f] / @cropping.zoom
+      if @cropping.active
+        @cropping.handle.set_crop do
+          x: @cropping.x * @cropping.zoom
+          y: @cropping.y * @cropping.zoom
+          w: @cropping.w * @cropping.zoom
+          h: @cropping.h * @cropping.zoom
 
-    croping-cancel: !->
-      @croping.handle?remove!
-      @croping = void
+    cropping-cancel: !->
+      @cropping.handle?remove!
+      @cropping = void
 
-    croping-do: !->
-      {x, y, w, h} = @croping
-      @queue[@croping.i]
+    cropping-do: !->
+      {x, y, w, h} = @cropping
+      @queue[@cropping.i]
         ..crop = {x, y, w, h}
         ..clip = "rect(#{y}px,#{x+w}px,#{y+h}px,#{x}px)"
-      @croping.handle?remove!
-      @croping = void
+      @cropping.handle?remove!
+      @cropping = void
 
-    croping-touch-start: !->
+    cropping-touch-start: !->
       console.warn \touch-start, it
 
-      croping = croping0 = @croping-touch ? []
+      cropping = cropping0 = @cropping-touch ? []
       for t in it.changed-touches
-        croping = for c in croping when c.id != t.identifier
+        cropping = for c in cropping when c.id != t.identifier
           c
-        croping.push do
+        cropping.push do
           id: t.identifier
           x: t.client-x
           y: t.client-y
-      @croping-touch = croping
+      @cropping-touch = cropping
 
-      if croping0.length < 2 && croping.length >= 2
-        @croping-touch-zoom = @croping.zoom
+      if cropping0.length < 2 && cropping.length >= 2
+        @cropping-touch-zoom = @cropping.zoom
 
-    croping-touch-move: !->
+    cropping-touch-move: !->
       console.warn \touch-move, it
 
       dis = (x1, y1, x2, y2) ->
         Math.sqrt (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
 
-      croping = @croping-touch ? []
+      cropping = @cropping-touch ? []
       for t in it.changed-touches
-        for c,i in croping when c.id == t.identifier
+        for c,i in cropping when c.id == t.identifier
           if i < 2
             c.x2 = t.client-x
             c.y2 = t.client-y
-            if croping.length >= 2
-              dis1 = dis croping.0.x, croping.0.y, croping.1.x, croping.1.y
-              dis2 = dis croping.0.x2, croping.0.y2, croping.1.x2, croping.1.y2
+            if cropping.length >= 2
+              dis1 = dis cropping.0.x, cropping.0.y, cropping.1.x, cropping.1.y
+              dis2 = dis cropping.0.x2, cropping.0.y2, cropping.1.x2, cropping.1.y2
               if dis1 && dis2
-                console.warn \touch, "(#{croping.0.x},#{croping.0.y}) (#{croping.1.x},#{croping.1.y})", "(#{croping.0.x2},#{croping.0.y2}) (#{croping.1.x2},#{croping.1.y2})"
+                console.warn \touch, "(#{cropping.0.x},#{cropping.0.y}) (#{cropping.1.x},#{cropping.1.y})", "(#{cropping.0.x2},#{cropping.0.y2}) (#{cropping.1.x2},#{cropping.1.y2})"
                 console.warn \zoom, dis1, dis2, dis2 / dis1
-                @croping.zoom = @croping-touch-zoom * dis2 / dis1
+                @cropping.zoom = @cropping-touch-zoom * dis2 / dis1
           else
             c.x = t.client-x
             c.y = t.client-y
 
-      if croping.length >= 2
+      @console.warn \@cropping, JSON.stringify cropping, cropping
+
+      if cropping.length >= 2
         it.prevent-default!
         it.stop-propagation!
 
-    croping-touch-stop: !->
+    cropping-touch-stop: !->
       console.warn \touch-stop, it
 
-      croping = @croping-touch ? []
+      cropping = @cropping-touch ? []
       for t in it.changed-touches
-        croping = for c in croping when c.id != t.identifier
+        cropping = for c in cropping when c.id != t.identifier
           c
-      if croping.length >=2 && (!croping.0.x2? || !croping.1.x2?)
-        @croping-touch-zoom = @croping.zoom
-        for c,i in croping when i<2
+      if cropping.length >=2 && (!cropping.0.x2? || !cropping.1.x2?)
+        @cropping-touch-zoom = @cropping.zoom
+        for c,i in cropping when i<2
           c.x2 = c.x
           c.y2 = c.y
 
-      @croping-touch = croping
+      @cropping-touch = cropping
 
     split: (i) !->
-      @spliting = i
-    spliting-cancel: !->
-      @spliting = -1
-    spliting-split: !->
-      @spliting-num = @spliting-num .|. 0
-      if @spliting-num > 1
-        for i from @spliting + 1 to @spliting + @spliting-num - 1
-          @queue.splice i, 0, ^^@queue[@spliting]
-        if @spliting-dir == \h
-          if @queue[@spliting].crop
+      @splitting = i
+    splitting-cancel: !->
+      @splitting = -1
+    splitting-split: !->
+      @splitting-num = @splitting-num .|. 0
+      if @splitting-num > 1
+        for i from @splitting + 1 to @splitting + @splitting-num - 1
+          @queue.splice i, 0, ^^@queue[@splitting]
+        if @splitting-dir == \h
+          if @queue[@splitting].crop
             x = that.x
-            w = that.w / @spliting-num
+            w = that.w / @splitting-num
             y = that.y
             h = that.h
           else
             x = 0
-            w = @queue[@spliting].w / @spliting-num
+            w = @queue[@splitting].w / @splitting-num
             y = 0
-            h = @queue[@spliting].h
-          for i from @spliting to @spliting + @spliting-num - 1
+            h = @queue[@splitting].h
+          for i from @splitting to @splitting + @splitting-num - 1
             @queue[i].crop = {x, y, w, h}
             x += w
         else
-          if @queue[@spliting].crop
+          if @queue[@splitting].crop
             x = that.x
             w = that.w
             y = that.y
-            h = that.h / @spliting-num
+            h = that.h / @splitting-num
           else
             x = 0
-            w = @queue[@spliting].w
+            w = @queue[@splitting].w
             y = 0
-            h = @queue[@spliting].h / @spliting-num
-          for i from @spliting to @spliting + @spliting-num - 1
+            h = @queue[@splitting].h / @splitting-num
+          for i from @splitting to @splitting + @splitting-num - 1
             @queue[i].crop = {x, y, w, h}
             y += h
-      @spliting = -1;
+      @splitting = -1;
 
     left: (i) !->
       @queue[i - 1, i] = @queue[i, i - 1]
