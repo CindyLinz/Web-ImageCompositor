@@ -512,22 +512,25 @@ Vue.create-app do
 
     select-file: !->
       for let file,i in it.target.files when file?type == /^image\//
-        new Image
-          ..src = URL.create-objectURL file
-          ..onload = !~>
-            w = ..natural-width
-            h = ..natural-height
-            if w > 0 && h > 0
-              @queue[@select-cursor + i] = do
-                img: ..
-                src: ..src
-                w: w
-                h: h
-                transform: "translate(-50%,-50%)scale(#{100/h})translate(50%,50%)"
-                r: 0
-                f: 0
-                crop: void
-                clip: void
+        new FileReader
+          ..onload = (e) !~>
+            new Image
+              ..onload = !~>
+                w = ..natural-width
+                h = ..natural-height
+                if w > 0 && h > 0
+                  @queue[@select-cursor + i] = do
+                    img: ..
+                    src: e.target.result
+                    w: w
+                    h: h
+                    transform: "translate(-50%,-50%)scale(#{100/h})translate(50%,50%)"
+                    r: 0
+                    f: 0
+                    crop: void
+                    clip: void
+              ..src = e.target.result
+          ..read-as-data-URL file
 
       it.target.value = ''
 
