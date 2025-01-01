@@ -7,7 +7,7 @@ Vue.create-app do
     layout: '[3, [2, 3], 1]'
     queue: []
     hit-box: []
-    ready: no
+    waiting: 1
     background: ''
     download-url: ''
     height: 0
@@ -152,7 +152,7 @@ Vue.create-app do
       return res
 
     drawed: !->
-      if !@ready || !@$refs.canvas
+      if @waiting || !@$refs.canvas
         @download-url = ''
         @height = 0
         return \Waiting
@@ -307,6 +307,7 @@ Vue.create-app do
 
       canvas.to-blob (blob) !~>
         @download-url = URL.create-objectURL blob
+      @save!
       return 'Done ' + Math.random!
 
   methods:
@@ -534,7 +535,38 @@ Vue.create-app do
 
       it.target.value = ''
 
+    save: !->
+      data = do
+        width0: @width0
+        gap0: @gap0 
+        border0: @border0
+        radius0: @radius0
+        layout: @layout
+        background: @background
+        height: @height
+        queue: @queue
+      window.local-storage.set-item \state, JSON.stringify data
+
+    load: !->
+      if window.local-storage.get-item \state
+        JSON.parse that
+          @width0 = ..width0
+          @gap0 = ..gap0
+          @border0 = ..border0
+          @radius0 = ..radius0
+          @layout = ..layout
+          @background = ..background
+          @height = ..height
+          @queue = ..queue
+          for q in ..queue when q
+            ++@waiting
+            q.img = new Image
+              ..onload = !~>
+                --@waiting
+              ..src = q.src
+
   mounted: !->
-    @ready = yes
+    @load!
+    --@waiting
 
 .mount \#body
