@@ -535,6 +535,32 @@ Vue.create-app do
 
       it.target.value = ''
 
+    reset-data: !->
+      init-data = do
+        width0: \1024
+        gap0: \1
+        border0: \1
+        radius0: \0
+        layout: '[3, [2, 3], 1]'
+        queue: []
+        hit-box: []
+        waiting: 1
+        background: ''
+        download-url: ''
+        height: 0
+        select-cursor: void
+        cropping: void
+        zoom-step: 0.2
+
+        splitting: -1
+        splitting-num: 2
+        splitting-dir: \h
+
+      for k, v of init-data
+        @[k] = v
+
+      @save!
+
     save: !->
       data = do
         width0: @width0
