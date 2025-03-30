@@ -14,6 +14,7 @@ Vue.create-app do
     select-cursor: void
     cropping: void
     zoom-step: 0.2
+    memorized: \memorized
 
     splitting: -1
     splitting-num: 2
@@ -307,7 +308,8 @@ Vue.create-app do
 
       canvas.to-blob (blob) !~>
         @download-url = URL.create-objectURL blob
-      @save!
+      if @memorized == \memorized
+        @save!
       return 'Done ' + Math.random!
 
   methods:
@@ -544,7 +546,7 @@ Vue.create-app do
         layout: '[3, [2, 3], 1]'
         queue: []
         hit-box: []
-        waiting: 1
+        waiting: 0
         background: ''
         download-url: ''
         height: 0
@@ -564,7 +566,7 @@ Vue.create-app do
     save: !->
       data = do
         width0: @width0
-        gap0: @gap0 
+        gap0: @gap0
         border0: @border0
         radius0: @radius0
         layout: @layout
@@ -584,12 +586,17 @@ Vue.create-app do
           @background = ..background
           @height = ..height
           @queue = ..queue
+          ++@waiting
           for q in ..queue when q
-            ++@waiting
-            q.img = new Image
-              ..onload = !~>
-                --@waiting
-              ..src = q.src
+            if q.src
+              ++@waiting
+              q.img = new Image
+                ..onload = !~>
+                  --@waiting
+                ..src = q.src
+            else
+              q.img = new Image
+          --@waiting
 
   mounted: !->
     @load!

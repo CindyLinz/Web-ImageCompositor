@@ -80,7 +80,10 @@
       <label>Border: <input type=number v-model=border0></label>
       <label>Corner radius: <input type=number v-model=radius0></label>
       → Height: {{height}}
-      <button @click=resetData>Reset</button></button><br>
+      <label><input type=radio value=memorized v-model=memorized @change=save> memorized</label>
+      <label><input type=radio value=volatile v-model=memorized @change=resetData> volatile</label>
+      <button @click=load>load</button>
+      <br>
       <label>Layout: <input type=text v-model=layout></label><br>
       <label>Background color: <input type=text v-model=background placeholder="#rrggbb or left empty for transparent"> <a href=//cindylinz.github.io/Web-ColorPicker/ target=_blank>color picker</a></br>
       <span style=display:none><input type=file @change=selectFile accept=image/* multiple>{{drawed}}</span>
