@@ -108,7 +108,10 @@
             {{_.w}}×{{_.h}}
             <div v-if=_.crop>
               Crop:
-              {{_.crop.w}}×{{_.crop.h}}+{{_.crop.x}}+{{_.crop.y}}
+              {{(''+_.crop.w).replace(/(?&lt;=\...).*/,'')}}×
+              {{(''+_.crop.h).replace(/(?&lt;=\...).*/,'')}}+
+              {{(''+_.crop.x).replace(/(?&lt;=\...).*/,'')}}+
+              {{(''+_.crop.y).replace(/(?&lt;=\...).*/,'')}}
             </div>
           </div>
           <div v-else class=dim>1×1</div>
