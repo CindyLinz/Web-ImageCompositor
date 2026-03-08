@@ -360,7 +360,7 @@ Vue.create-app do
             ..y = 0
             ..w = img.w
             ..h = img.h
-            ..active = no
+            ..active = yes
         set-timeout !~>
           @cropping-set 0
         , 0
@@ -389,9 +389,14 @@ Vue.create-app do
 
     cropping-do: !->
       {x, y, w, h} = @cropping
-      @queue[@cropping.i]
-        ..crop = {x, y, w, h}
-        ..clip = "rect(#{y}px,#{x+w}px,#{y+h}px,#{x}px)"
+      if x==0 && y==0 && w==@queue[@cropping.i].w && h==@queue[@cropping.i].h
+        @queue[@cropping.i]
+          ..crop = void
+          ..clip = void
+      else
+        @queue[@cropping.i]
+          ..crop = {x, y, w, h}
+          ..clip = "rect(#{y}px,#{x+w}px,#{y+h}px,#{x}px)"
       @cropping.handle?remove!
       @cropping = void
 
