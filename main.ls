@@ -15,7 +15,7 @@ Vue.create-app do
     select-cursor: void
     cropping: void
     zoom-step: 0.2
-    memorized: \memorized
+    memorized: \volatile
 
     splitting: -1
     splitting-num: 2
