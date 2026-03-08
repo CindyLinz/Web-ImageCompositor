@@ -10,6 +10,7 @@ Vue.create-app do
     waiting: 1
     background: ''
     download-url: ''
+    download-size: 0
     height: 0
     select-cursor: void
     cropping: void
@@ -25,6 +26,15 @@ Vue.create-app do
     gap: -> @gap0 - 0
     radius: -> @radius0 - 0
     border: -> if @radius > 0 then @border0 - 0 + 1 else @border0 - 0
+
+    download-size-text: ->
+      s = @download-size
+      if s < 1024
+        s + ' B'
+      else if s < 1024 * 1024
+        (s / 1024).to-fixed(1) + ' KB'
+      else
+        (s / 1024 / 1024).to-fixed(1) + ' MB'
 
     layout-dimension: ->
       layout = try
@@ -155,6 +165,7 @@ Vue.create-app do
     drawed: !->
       if @waiting || !@$refs.canvas
         @download-url = ''
+        @download-size = 0
         @height = 0
         return \Waiting
 
@@ -308,6 +319,7 @@ Vue.create-app do
 
       canvas.to-blob (blob) !~>
         @download-url = URL.create-objectURL blob
+        @download-size = blob.size
       if @memorized == \memorized
         @save!
       return 'Done ' + Math.random!
@@ -554,6 +566,7 @@ Vue.create-app do
         waiting: 0
         background: ''
         download-url: ''
+        download-size: 0
         height: 0
         select-cursor: void
         cropping: void
